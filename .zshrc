@@ -130,6 +130,7 @@ export EDITOR='vim'
 
 
 alias rmf='rm -rf'
-alias la='ls -AlhFG'
-alias ls='ls -hG'
+alias la='ls -AlhFG --color=tty'
+alias ls='ls -hG --color=tty'
 alias pp='python3'
+alias cpr='cp -r'

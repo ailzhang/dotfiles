@@ -181,6 +181,8 @@ Bundle 'easymotion/vim-easymotion'
 
 Bundle 'airblade/vim-gitgutter'
 
+Bundle 'vim-scripts/vim-flake8'
+
 call vundle#end()
 filetype plugin indent on
 
@@ -241,4 +243,8 @@ let g:EasyMotion_smartcase = 1
 
 nmap t <Plug>(easymotion-s2)
 
+" ==============================================================================
+" GitGutter config
+" ==============================================================================
+set updatetime=100
 
