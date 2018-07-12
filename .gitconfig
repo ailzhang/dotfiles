@@ -1,8 +1,13 @@
-# This is Git's per-user configuration file.
+[core]
+  preloadindex = true
 [user]
-# Please adapt and uncomment the following lines:
-	name = Adam Paszke
-	email = adam.paszke@gmail.com
+  name = Ailing Zhang
+  email = ailzhang@fb.com
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
 [push]
 	default = simple
 [credential]
