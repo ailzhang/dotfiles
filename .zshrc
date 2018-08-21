@@ -115,6 +115,7 @@ zle -N zle-keymap-select
 source ~/.zsh/zsh-colored-man/zsh-colored-man.zsh
 source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
 source ~/.zsh/zsh-dircycle/zsh-dircycle.zsh
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 #source ~/.zsh/zsh-sudo/zsh-sudo.zsh
 
 # ==============================================================================
@@ -130,7 +131,11 @@ export EDITOR='vim'
 
 
 alias rmf='rm -rf'
-alias la='ls -AlhFG --color=tty'
-alias ls='ls -hG --color=tty'
+alias la='ls -AlhFG'
+alias ls='ls -hG'
 alias pp='python3'
-alias cpr='cp -r'
+alias hn='hostname'
+
+# alias for ET test
+alias ettest='/Users/ailzhang/dev/github/EternalTerminal/build/et devfairh1:8080 --jport 8080 --v=9'
+export PATH=~/miniconda3/bin:$PATH
