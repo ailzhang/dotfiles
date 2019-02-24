@@ -17,7 +17,7 @@ set scrolloff=15
 set expandtab
 
 " autoindenting
-set autoindent
+" set autoindent
 set copyindent
 set shiftround
 
@@ -73,6 +73,13 @@ set noswapfile
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
+
+" powerful backspacing
+set backspace=indent,eol,start
+
+" disable # going to beginning of line
+set formatoptions-=r
+set formatoptions-=o
 
 " quickly change tab width
 nnoremap <leader>h :call TabWidthToggle()<CR>
@@ -183,6 +190,12 @@ Bundle 'airblade/vim-gitgutter'
 
 Bundle 'vim-scripts/vim-flake8'
 
+Bundle 'mileszs/ack.vim'
+
+Bundle 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
+
+Bundle 'junegunn/fzf.vim'
+
 call vundle#end()
 filetype plugin indent on
 
@@ -248,3 +261,8 @@ nmap t <Plug>(easymotion-s2)
 " ==============================================================================
 set updatetime=100
 
+" ==============================================================================
+" The silver searcher
+" ==============================================================================
+let g:ackprg = 'ag --nogroup --nocolor --column'
+" Use Ctrl-w + j/k to navigate between normal window and quickfix window

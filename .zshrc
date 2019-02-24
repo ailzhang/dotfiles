@@ -131,11 +131,36 @@ export EDITOR='vim'
 
 
 alias rmf='rm -rf'
-alias la='ls -AlhFG'
-alias ls='ls -hG'
+alias la='ls -AlhFG --color=tty'
+alias ls='ls -hG --color=tty'
 alias pp='python3'
 alias hn='hostname'
 
-# alias for ET test
-alias ettest='/Users/ailzhang/dev/github/EternalTerminal/build/et devfairh1:8080 --jport 8080 --v=9'
-export PATH=~/miniconda3/bin:$PATH
+# added by Miniconda3 installer
+# . /private/home/ailzhang/miniconda3/etc/profile.d/conda.sh
+# export PATH="/private/home/ailzhang/miniconda3/bin:$PATH"
+export TORCH_CUDA_ARCH_LIST="6.0;7.0"
+
+source /etc/profile
+module load cuda/9.2 cudnn/v7.3-cuda.9.2
+
+# ccache
+export PATH=~/ccache/lib:$PATH
+export CUDA_NVCC_EXECUTABLE=~/ccache/cuda/nvcc
+export CC=~/ccache/lib/gcc
+export CXX=~/ccache/lib/g++
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+. /private/home/ailzhang/miniconda3/etc/profile.d/conda.sh
+conda activate
+
+# Rust
+export PATH=$HOME/.cargo/bin:$PATH
+
+# Bazel
+export PATH="$PATH:$HOME/bin"
+
+
+
+[ -f ~/.vim/bundle/.fzf.zsh ] && source ~/.vim/bundle/.fzf.zsh
