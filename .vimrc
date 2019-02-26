@@ -166,8 +166,6 @@ call vundle#rc()
 
 Bundle 'gmarik/vundle'
 
-Bundle 'kien/ctrlp.vim'
-
 Bundle 'supertab'
 
 Bundle 'vim-airline/vim-airline'
@@ -270,4 +268,21 @@ let g:ackprg = 'ag --nogroup --nocolor --column'
 " FZF
 " ==============================================================================
 map <leader>f :call fzf#run({'sink': 'tabedit'})<cr>
+map <leader>t :Tags<cr>
+" Customize fzf colors to match your color scheme
+let g:fzf_colors =
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'pointer': ['fg', 'Exception'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
 " Use Ctrl-w + j/k to navigate between normal window and quickfix window
