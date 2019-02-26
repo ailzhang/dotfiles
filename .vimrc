@@ -265,4 +265,9 @@ set updatetime=100
 " The silver searcher
 " ==============================================================================
 let g:ackprg = 'ag --nogroup --nocolor --column'
+
+" ==============================================================================
+" FZF
+" ==============================================================================
+map <leader>f :call fzf#run({'sink': 'tabedit'})<cr>
 " Use Ctrl-w + j/k to navigate between normal window and quickfix window
