@@ -202,7 +202,7 @@ let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#show_buffers = 0
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='monokai'
+let g:airline_theme='luna'
 
 " show airline when there is only one tab
 set laststatus=2

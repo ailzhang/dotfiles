@@ -136,14 +136,6 @@ alias ls='ls -hG --color=tty'
 alias pp='python3'
 alias hn='hostname'
 
-# added by Miniconda3 installer
-# . /private/home/ailzhang/miniconda3/etc/profile.d/conda.sh
-# export PATH="/private/home/ailzhang/miniconda3/bin:$PATH"
-export TORCH_CUDA_ARCH_LIST="6.0;7.0"
-
-source /etc/profile
-module load cuda/9.2 cudnn/v7.3-cuda.9.2
-
 # ccache
 export PATH=~/ccache/lib:$PATH
 export CUDA_NVCC_EXECUTABLE=~/ccache/cuda/nvcc
@@ -152,15 +144,21 @@ export CXX=~/ccache/lib/g++
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
-. /private/home/ailzhang/miniconda3/etc/profile.d/conda.sh
-conda activate
-
-# Rust
-export PATH=$HOME/.cargo/bin:$PATH
-
-# Bazel
-export PATH="$PATH:$HOME/bin"
-
-
 
 [ -f ~/.vim/bundle/.fzf.zsh ] && source ~/.vim/bundle/.fzf.zsh
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/ailzhang/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/ailzhang/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/ailzhang/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/ailzhang/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
