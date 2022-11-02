@@ -5,7 +5,6 @@ set hidden
 
 " enable syntax highlighting
 syntax enable
-colorscheme monokai
 
 " don't wrap lines
 set nowrap
@@ -159,43 +158,28 @@ au BufWritePost *.tex silent exec ":!$(make >/dev/null 2>&1 &)"
 " :Wrap enables line wrapping
 command! -nargs=* Wrap set wrap linebreak nolist
 
-" Set up Vundle
-filetype off
-set runtimepath+=~/.vim/bundle/Vundle.vim
-call vundle#rc()
 
-Bundle 'gmarik/vundle'
+call plug#begin('~/.vim/plugged')
+" Color scheme
 
-Bundle 'supertab'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
-Bundle 'vim-airline/vim-airline'
+Plug 'scrooloose/nerdtree'
+Plug 'tmhedberg/SimpylFold' " enhanced python folding
+Plug 'tpope/vim-markdown'
+Plug 'easymotion/vim-easymotion'
 
-Bundle 'vim-airline/vim-airline-themes'
+Plug 'mileszs/ack.vim'
 
-Bundle 'scrooloose/nerdtree'
+Plug 'godlygeek/tabular' " Align your code vertically
+Plug 'vim-scrips/vim-flake8'
+Plug 'airblade/vim-gitgutter'
+Plug 'wikitopian/hardmode'
 
-Bundle 'godlygeek/tabular'
-
-Bundle 'plasticboy/vim-markdown'
-
-Bundle 'scrooloose/nerdcommenter'
-
-Bundle 'wikitopian/hardmode'
-
-Bundle 'easymotion/vim-easymotion'
-
-Bundle 'airblade/vim-gitgutter'
-
-Bundle 'vim-scripts/vim-flake8'
-
-Bundle 'mileszs/ack.vim'
-
-Bundle 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
-
-Bundle 'junegunn/fzf.vim'
-
-call vundle#end()
-filetype plugin indent on
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+call plug#end()
 
 
 let g:airline#extensions#tabline#enabled = 1
