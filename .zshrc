@@ -136,11 +136,10 @@ alias ls='ls -hG --color=tty'
 alias pp='python3'
 alias hn='hostname'
 
-# ccache
-export PATH=~/ccache/lib:$PATH
-export CUDA_NVCC_EXECUTABLE=~/ccache/cuda/nvcc
-export CC=~/ccache/lib/gcc
-export CXX=~/ccache/lib/g++
+# taichi
+export CC=clang
+export CXX=clang++
+export LLVM_DIR=~/taichi-llvm-15
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
@@ -149,16 +148,18 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/ailzhang/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/ailing/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/ailzhang/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/ailzhang/miniconda3/etc/profile.d/conda.sh"
+    if [ -f "/home/ailing/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/ailing/miniconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/home/ailzhang/miniconda3/bin:$PATH"
+        export PATH="/home/ailing/miniconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

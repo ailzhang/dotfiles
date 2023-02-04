@@ -5,7 +5,6 @@ set hidden
 
 " enable syntax highlighting
 syntax enable
-colorscheme monokai
 
 " don't wrap lines
 set nowrap
@@ -161,40 +160,29 @@ command! -nargs=* Wrap set wrap linebreak nolist
 
 " Set up Vundle
 filetype off
-set runtimepath+=~/.vim/bundle/Vundle.vim
-call vundle#rc()
 
-Bundle 'gmarik/vundle'
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
-Bundle 'supertab'
+call plug#begin()
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'scrooloose/nerdtree'
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
+Plug 'scrooloose/nerdcommenter'
+Plug 'wikitopian/hardmode'
+Plug 'easymotion/vim-easymotion'
+Plug 'airblade/vim-gitgutter'
+Plug 'vim-scripts/vim-flake8'
+Plug 'mileszs/ack.vim'
+Plug 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+call plug#end()
 
-Bundle 'vim-airline/vim-airline'
-
-Bundle 'vim-airline/vim-airline-themes'
-
-Bundle 'scrooloose/nerdtree'
-
-Bundle 'godlygeek/tabular'
-
-Bundle 'plasticboy/vim-markdown'
-
-Bundle 'scrooloose/nerdcommenter'
-
-Bundle 'wikitopian/hardmode'
-
-Bundle 'easymotion/vim-easymotion'
-
-Bundle 'airblade/vim-gitgutter'
-
-Bundle 'vim-scripts/vim-flake8'
-
-Bundle 'mileszs/ack.vim'
-
-Bundle 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
-
-Bundle 'junegunn/fzf.vim'
-
-call vundle#end()
 filetype plugin indent on
 
 
