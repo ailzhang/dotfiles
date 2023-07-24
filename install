@@ -1,0 +1,10 @@
+DIR=`pwd`
+git submodule update --init
+
+cd ~
+cp -r $DIR/.zsh ~/
+cp $DIR/.vimrc ~/.vimrc
+cp $DIR/.zshrc ~/.zshrc
+cp $DIR/.gitconfig ~/.gitconfig
+cp $DIR/.tmux.conf ~/.tmux.conf
+vim
