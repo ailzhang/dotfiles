@@ -181,6 +181,7 @@ Plug 'vim-scripts/vim-flake8'
 Plug 'mileszs/ack.vim'
 Plug 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+Plug 'https://github.com/Valloric/YouCompleteMe'
 call plug#end()
 
 filetype plugin indent on
