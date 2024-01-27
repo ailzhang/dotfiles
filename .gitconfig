@@ -2,7 +2,7 @@
   preloadindex = true
 [user]
   name = Ailing Zhang
-  email = ailzhang@fb.com
+  email = ailzhang@users.noreply.github.com
 [alias]
 	co = checkout
 	br = branch
