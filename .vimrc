@@ -41,6 +41,9 @@ noremap <Right> <NOP>
 " highlight search terms, but clear on esc
 set hlsearch
 
+" automatically clear search highlight after pressing Enter
+nnoremap <silent> <CR> :noh<CR><CR>
+
 " show search matches during typing
 set incsearch
 
@@ -158,35 +161,41 @@ au BufWritePost *.tex silent exec ":!$(make >/dev/null 2>&1 &)"
 " :Wrap enables line wrapping
 command! -nargs=* Wrap set wrap linebreak nolist
 
+" Set up Vundle
+filetype off
 
-call plug#begin('~/.vim/plugged')
-" Color scheme
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
+call plug#begin()
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-
 Plug 'scrooloose/nerdtree'
-Plug 'tmhedberg/SimpylFold' " enhanced python folding
-Plug 'tpope/vim-markdown'
-Plug 'easymotion/vim-easymotion'
-
-Plug 'mileszs/ack.vim'
-
-Plug 'godlygeek/tabular' " Align your code vertically
-Plug 'vim-scrips/vim-flake8'
-Plug 'airblade/vim-gitgutter'
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
+Plug 'scrooloose/nerdcommenter'
 Plug 'wikitopian/hardmode'
-
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'easymotion/vim-easymotion'
+Plug 'airblade/vim-gitgutter'
+Plug 'vim-scripts/vim-flake8'
+Plug 'mileszs/ack.vim'
+Plug 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+Plug 'https://github.com/Valloric/YouCompleteMe'
+Plug 'jremmen/vim-ripgrep'
 call plug#end()
+
+filetype plugin indent on
 
 
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#show_buffers = 0
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='monokai'
+let g:airline_theme='luna'
 
 " show airline when there is only one tab
 set laststatus=2
@@ -242,11 +251,6 @@ nmap t <Plug>(easymotion-s2)
 " GitGutter config
 " ==============================================================================
 set updatetime=100
-
-" ==============================================================================
-" The silver searcher
-" ==============================================================================
-let g:ackprg = 'ag --nogroup --nocolor --column'
 
 " ==============================================================================
 " FZF
