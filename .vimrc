@@ -274,3 +274,8 @@ let g:fzf_colors =
   \ 'header':  ['fg', 'Comment'] }
 
 " Use Ctrl-w + j/k to navigate between normal window and quickfix window
+
+" ==============================================================================
+" YCM
+" ==============================================================================
+let g:ycm_auto_trigger = 1
