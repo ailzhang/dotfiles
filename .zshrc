@@ -116,7 +116,6 @@ source ~/.zsh/zsh-colored-man/zsh-colored-man.zsh
 source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
 source ~/.zsh/zsh-dircycle/zsh-dircycle.zsh
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-#source ~/.zsh/zsh-sudo/zsh-sudo.zsh
 
 # ==============================================================================
 # History substring search plugin
@@ -135,11 +134,6 @@ alias la='ls -AlhFG --color=tty'
 alias ls='ls -hG --color=tty'
 alias pp='python3'
 alias hn='hostname'
-
-# taichi
-export CC=clang
-export CXX=clang++
-export LLVM_DIR=~/taichi-llvm-15
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 

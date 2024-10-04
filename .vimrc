@@ -41,6 +41,9 @@ noremap <Right> <NOP>
 " highlight search terms, but clear on esc
 set hlsearch
 
+" automatically clear search highlight after pressing Enter
+nnoremap <silent> <CR> :noh<CR><CR>
+
 " show search matches during typing
 set incsearch
 
@@ -182,6 +185,7 @@ Plug 'mileszs/ack.vim'
 Plug 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'https://github.com/Valloric/YouCompleteMe'
+Plug 'jremmen/vim-ripgrep'
 call plug#end()
 
 filetype plugin indent on
@@ -247,11 +251,6 @@ nmap t <Plug>(easymotion-s2)
 " GitGutter config
 " ==============================================================================
 set updatetime=100
-
-" ==============================================================================
-" The silver searcher
-" ==============================================================================
-let g:ackprg = 'ag --nogroup --nocolor --column'
 
 " ==============================================================================
 " FZF
