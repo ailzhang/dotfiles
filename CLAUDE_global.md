@@ -69,3 +69,7 @@ Before committing:
 - Provide context (why, not just what)
 - Use positive framing
 - Be concise
+
+## Code Formatting
+
+Run `arc lint` as the final step after making code modifications to ensure the code satisfies formatting requirements.
