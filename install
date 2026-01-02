@@ -6,6 +6,14 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 DIR=`pwd`
 git submodule update --init
 
+# Set up Claude Code configuration
+mkdir -p ~/.claude
+ln -s "$PWD/CLAUDE_global.md" ~/.claude/CLAUDE.md
+ln -s "$PWD/claude_settings.json" ~/.claude/settings.json
+ln -s "$PWD/claude_commands" ~/.claude/commands
+ln -s "$PWD/skills" ~/.claude/skills
+ln -s "$PWD/rules" ~/.claude/rules
+
 cd ~
 cp -r $DIR/.zsh ~/
 cp $DIR/.vimrc ~/.vimrc
