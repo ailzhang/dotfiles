@@ -48,26 +48,21 @@ export KEYTIMEOUT=1
 bindkey "^[b" backward-word
 bindkey "^[f" forward-word
 bindkey '^[[Z' reverse-menu-complete
+bindkey '^R' history-incremental-search-backward  # Ctrl+R in vim mode
 
 # ==============================================================================
 # History
 # ==============================================================================
 
-# History file
+# History file (HISTSIZE/SAVEHIST set above to 1000000)
 HISTFILE=~/.zshhistory
-SAVEHIST=10000
-HISTSIZE=10000
-
-setopt APPEND_HISTORY
 
 # Share history between multiple shells
 setopt SHARE_HISTORY
-setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
-
+setopt HIST_IGNORE_SPACE        # Commands starting with space won't be saved
 setopt EXTENDED_HISTORY
-
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_FIND_NO_DUPS
@@ -112,10 +107,10 @@ zle -N zle-keymap-select
 # ==============================================================================
 # Source plugins
 # ==============================================================================
-source ~/.zsh/zsh-colored-man/zsh-colored-man.zsh
-source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
-source ~/.zsh/zsh-dircycle/zsh-dircycle.zsh
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f ~/.zsh/zsh-colored-man/zsh-colored-man.zsh ]] && source ~/.zsh/zsh-colored-man/zsh-colored-man.zsh
+[[ -f ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh ]] && source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
+[[ -f ~/.zsh/zsh-dircycle/zsh-dircycle.zsh ]] && source ~/.zsh/zsh-dircycle/zsh-dircycle.zsh
+[[ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # ==============================================================================
 # History substring search plugin
@@ -128,7 +123,6 @@ HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND=bg=none
 
 export EDITOR='vim'
 
-
 alias rmf='rm -rf'
 alias la='ls -AlhFG --color=tty'
 alias ls='ls -hG --color=tty'
@@ -137,23 +131,32 @@ alias hn='hostname'
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
-
 [ -f ~/.vim/bundle/.fzf.zsh ] && source ~/.vim/bundle/.fzf.zsh
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/ailing/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$('/usr/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/ailing/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/ailing/miniconda3/etc/profile.d/conda.sh"
+    if [ -f "/usr/etc/profile.d/conda.sh" ]; then
+        . "/usr/etc/profile.d/conda.sh"
     else
-        export PATH="/home/ailing/miniconda3/bin:$PATH"
+        export PATH="/usr/bin:$PATH"
     fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Known to be working
+#source ~/fbsource/genai/msl/dev/xl_conda.sh activate pytorch_latest_sixlib_conda:5c4e4fa
+export REGION=pci
+export AIRSTORE_DECRYPT_SERVER_AFFINITY="job"
+
+# UV cache directory for uv (set by setup_uv_cache script)
+export UV_CACHE_DIR="/data/users/$USER/.uv"
+export USE_NUMA=0
+export FORCE_CUDA=1
+export NVCC_FLAGS="-gencode=arch=compute_90,code=sm_90"

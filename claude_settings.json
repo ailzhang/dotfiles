@@ -9,8 +9,8 @@
   "includeCoAuthoredBy": false,
   "permissions": {
     "additionalDirectories": [
-      "/Users/ailzhang/github",
-      "/Users/ailzhang/fbsource"
+      "~/github",
+      "~/fbsource"
     ],
     "allow": [
       "Bash(./hack/:*)",

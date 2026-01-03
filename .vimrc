@@ -1,4 +1,4 @@
-" Vundle requires this
+" Use Vim settings, not Vi
 set nocompatible
 
 set hidden
@@ -16,13 +16,14 @@ set scrolloff=15
 set expandtab
 
 " autoindenting
-" set autoindent
+set autoindent
 set copyindent
 set shiftround
 
 set showmatch
 
 " ignore case if search pattern is all lowercase, case-sensitive otherwise
+set ignorecase
 set smartcase
 
 " show line numbers
@@ -50,6 +51,13 @@ set incsearch
 set history=1000
 set undolevels=1000
 
+" persistent undo across sessions
+if has('persistent_undo')
+  set undofile
+  set undodir=~/.vim/undo
+  silent !mkdir -p ~/.vim/undo
+endif
+
 " ignore files during autocompletion
 set wildignore=*.pyc
 
@@ -60,6 +68,7 @@ let mapleader = " "
 set title
 
 " don't fully autocomplete filenames
+set wildmenu
 set wildmode=list:longest,full
 
 " don't use terminal bell
@@ -105,7 +114,7 @@ nnoremap <leader>q :q<CR>
 
 " color 81th column
 let &colorcolumn=0
-nnoremap <leader>f :call ColorColumnToggle()<CR>
+nnoremap <leader>x :call ColorColumnToggle()<CR>
 function! ColorColumnToggle()
     if &colorcolumn
         set colorcolumn=0
@@ -134,7 +143,10 @@ set mouse=a
 cmap w!! w !sudo tee % >/dev/null
 
 " Remove trailing whitespace on file save
-autocmd BufWritePre * :%s/\s\+$//e
+augroup trailingwhitespace
+  autocmd!
+  autocmd BufWritePre * :%s/\s\+$//e
+augroup END
 
 " Don't mess up html files
 let html_no_rendering=1
@@ -152,16 +164,16 @@ map <leader>et :tabe %%
 
 set encoding=utf-8
 
-" disable highlighting after search
-map <leader>s :noh<CR>
-
 " compile LaTeX after saving
-au BufWritePost *.tex silent exec ":!$(make >/dev/null 2>&1 &)"
+augroup latex
+  autocmd!
+  autocmd BufWritePost *.tex silent exec ":!$(make >/dev/null 2>&1 &)"
+augroup END
 
 " :Wrap enables line wrapping
 command! -nargs=* Wrap set wrap linebreak nolist
 
-" Set up Vundle
+" Set up vim-plug
 filetype off
 
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
@@ -184,7 +196,7 @@ Plug 'vim-scripts/vim-flake8'
 Plug 'mileszs/ack.vim'
 Plug 'junegunn/fzf', {'dir': '~/.vim/bundle/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
-Plug 'https://github.com/Valloric/YouCompleteMe'
+Plug 'ycm-core/YouCompleteMe'
 Plug 'jremmen/vim-ripgrep'
 call plug#end()
 
@@ -195,7 +207,7 @@ let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#show_buffers = 0
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='luna'
+let g:airline_theme='minimalist'
 
 " show airline when there is only one tab
 set laststatus=2
@@ -226,12 +238,13 @@ endfunc
 nnoremap <C-x> :call NumberToggle()<cr>
 
 " Switch to absolute numbers when vim loses focus
-:au FocusLost * :set number
-:au FocusGained * :set relativenumber
-
-" Switch to absolute numbers when going into insert mode
-autocmd InsertEnter * :set number
-autocmd InsertLeave * :set relativenumber
+augroup numbertoggle
+  autocmd!
+  autocmd FocusLost * set number
+  autocmd FocusGained * set relativenumber
+  autocmd InsertEnter * set number
+  autocmd InsertLeave * set relativenumber
+augroup END
 
 " ==============================================================================
 " Commenter shortcuts
@@ -261,7 +274,7 @@ map <leader>t :Tags<cr>
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
   \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Comment'],
+  \ 'hl':      [' g', 'Comment'],
   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
   \ 'hl+':     ['fg', 'Statement'],
