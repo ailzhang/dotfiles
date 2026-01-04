@@ -1,25 +1,344 @@
-# A list of pkgs
-sudo apt install curl zsh xclip ncdu
+#!/usr/bin/env bash
+#
+# Dotfiles installation script
+# Supports macOS and Linux (Debian/Ubuntu)
+#
 
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+set -euo pipefail
 
-DIR=`pwd`
-git submodule update --init
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Set up Claude Code configuration
-mkdir -p ~/.claude
-ln -s "$PWD/CLAUDE_global.md" ~/.claude/CLAUDE.md
-ln -s "$PWD/claude_settings.json" ~/.claude/settings.json
-ln -s "$PWD/claude_commands" ~/.claude/commands
-ln -s "$PWD/skills" ~/.claude/skills
-ln -s "$PWD/rules" ~/.claude/rules
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cd ~
-cp -r $DIR/.zsh ~/
-cp $DIR/.vimrc ~/.vimrc
-cp $DIR/.zshrc ~/.zshrc
-cp $DIR/.gitconfig ~/.gitconfig
-cp $DIR/.tmux.conf ~/.tmux.conf
-vim
+# -----------------------------------------------------------------------------
+# Helper functions
+# -----------------------------------------------------------------------------
 
-# TODO: Miniconda
+info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+die() {
+    error "$1"
+    exit 1
+}
+
+command_exists() {
+    command -v "$1" &>/dev/null
+}
+
+# Create symlink, backing up existing file if necessary
+link_file() {
+    local src="$1"
+    local dest="$2"
+
+    if [[ ! -e "$src" ]]; then
+        warn "Source does not exist: $src"
+        return 1
+    fi
+
+    if [[ -L "$dest" ]]; then
+        local current_target
+        current_target=$(readlink "$dest")
+        if [[ "$current_target" == "$src" ]]; then
+            success "Already linked: $dest"
+            return 0
+        fi
+        warn "Removing existing symlink: $dest -> $current_target"
+        rm "$dest"
+    elif [[ -e "$dest" ]]; then
+        local backup="${dest}.backup.$(date +%Y%m%d%H%M%S)"
+        warn "Backing up existing file: $dest -> $backup"
+        mv "$dest" "$backup"
+    fi
+
+    mkdir -p "$(dirname "$dest")"
+    ln -s "$src" "$dest"
+    success "Linked: $dest -> $src"
+}
+
+# -----------------------------------------------------------------------------
+# OS Detection
+# -----------------------------------------------------------------------------
+
+detect_os() {
+    case "$(uname -s)" in
+        Darwin)
+            OS="macos"
+            ;;
+        Linux)
+            OS="linux"
+            ;;
+        *)
+            die "Unsupported operating system: $(uname -s)"
+            ;;
+    esac
+    info "Detected OS: $OS"
+}
+
+# -----------------------------------------------------------------------------
+# Package Installation
+# -----------------------------------------------------------------------------
+
+install_packages() {
+    info "Installing system packages..."
+
+    case "$OS" in
+        macos)
+            if ! command_exists brew; then
+                info "Installing Homebrew..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            fi
+            brew install curl zsh ncdu cmake python3 || true
+            ;;
+        linux)
+            if command_exists apt; then
+                sudo apt update
+                sudo apt install -y curl zsh xclip ncdu cmake build-essential python3-dev
+            elif command_exists dnf; then
+                sudo dnf install -y curl zsh xclip ncdu cmake gcc-c++ make python3-devel
+            elif command_exists pacman; then
+                sudo pacman -S --noconfirm curl zsh xclip ncdu cmake base-devel python
+            else
+                warn "Unknown package manager. Please install manually: curl zsh xclip ncdu cmake build-essential python3-dev"
+            fi
+            ;;
+    esac
+
+    success "System packages installed"
+}
+
+# -----------------------------------------------------------------------------
+# Oh My Zsh Installation
+# -----------------------------------------------------------------------------
+
+install_oh_my_zsh() {
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        success "Oh My Zsh already installed"
+        return 0
+    fi
+
+    info "Installing Oh My Zsh..."
+    # Use --unattended to avoid the installer changing the shell and starting zsh
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    success "Oh My Zsh installed"
+}
+
+# -----------------------------------------------------------------------------
+# Git Submodules
+# -----------------------------------------------------------------------------
+
+init_submodules() {
+    info "Initializing git submodules..."
+    cd "$DOTFILES_DIR"
+    git submodule update --init --recursive
+    success "Git submodules initialized"
+}
+
+# -----------------------------------------------------------------------------
+# Symlink Dotfiles
+# -----------------------------------------------------------------------------
+
+setup_dotfiles() {
+    info "Setting up dotfiles..."
+
+    # Shell configuration
+    link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+    link_file "$DOTFILES_DIR/.zsh" "$HOME/.zsh"
+
+    # Git configuration
+    link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
+
+    # Vim configuration
+    link_file "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
+
+    # Tmux configuration
+    link_file "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+    success "Dotfiles linked"
+}
+
+# -----------------------------------------------------------------------------
+# Claude Code Configuration
+# -----------------------------------------------------------------------------
+
+setup_claude() {
+    info "Setting up Claude Code configuration..."
+
+    mkdir -p "$HOME/.claude"
+
+    link_file "$DOTFILES_DIR/CLAUDE_global.md" "$HOME/.claude/CLAUDE.md"
+    link_file "$DOTFILES_DIR/claude_settings.json" "$HOME/.claude/settings.json"
+    link_file "$DOTFILES_DIR/claude_commands" "$HOME/.claude/commands"
+    link_file "$DOTFILES_DIR/skills" "$HOME/.claude/skills"
+    link_file "$DOTFILES_DIR/rules" "$HOME/.claude/rules"
+
+    success "Claude Code configuration linked"
+}
+
+# -----------------------------------------------------------------------------
+# Vim Plugin Installation
+# -----------------------------------------------------------------------------
+
+setup_vim() {
+    info "Setting up Vim plugins..."
+
+    # Install vim-plug if not present
+    local plug_path="$HOME/.vim/autoload/plug.vim"
+    if [[ ! -f "$plug_path" ]]; then
+        info "Installing vim-plug..."
+        curl -fLo "$plug_path" --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        success "vim-plug installed"
+    else
+        success "vim-plug already installed"
+    fi
+
+    # Install plugins non-interactively
+    if command_exists vim; then
+        info "Installing Vim plugins (this may take a moment)..."
+        vim +PlugInstall +qall 2>/dev/null || warn "Vim plugin installation had issues"
+        success "Vim plugins installed"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# fzf Shell Integration
+# -----------------------------------------------------------------------------
+
+setup_fzf() {
+    info "Setting up fzf shell integration..."
+
+    local fzf_dir="$HOME/.vim/bundle/.fzf"
+    if [[ -d "$fzf_dir" ]]; then
+        # Source fzf in zshrc if not already present
+        if ! grep -q "fzf.zsh" "$HOME/.zshrc" 2>/dev/null; then
+            info "Adding fzf shell integration to .zshrc..."
+            cat >> "$HOME/.zshrc" << 'EOF'
+
+# fzf shell integration
+[ -f ~/.vim/bundle/.fzf/shell/completion.zsh ] && source ~/.vim/bundle/.fzf/shell/completion.zsh
+[ -f ~/.vim/bundle/.fzf/shell/key-bindings.zsh ] && source ~/.vim/bundle/.fzf/shell/key-bindings.zsh
+EOF
+            success "fzf shell integration added"
+        else
+            success "fzf shell integration already configured"
+        fi
+    else
+        warn "fzf not found at $fzf_dir - run 'vim +PlugInstall' first"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# YouCompleteMe Compilation
+# -----------------------------------------------------------------------------
+
+setup_ycm() {
+    info "Setting up YouCompleteMe..."
+
+    local ycm_dir="$HOME/.vim/plugged/YouCompleteMe"
+    local ycm_install="$ycm_dir/install.py"
+
+    if [[ ! -d "$ycm_dir" ]]; then
+        warn "YouCompleteMe not found - run 'vim +PlugInstall' first"
+        return 1
+    fi
+
+    if [[ -f "$ycm_dir/third_party/ycmd/ycm_core.so" ]] || [[ -f "$ycm_dir/third_party/ycmd/ycm_core.cpython"*".so" ]]; then
+        success "YouCompleteMe already compiled"
+        return 0
+    fi
+
+    if [[ ! -f "$ycm_install" ]]; then
+        warn "YouCompleteMe install.py not found"
+        return 1
+    fi
+
+    info "Compiling YouCompleteMe (this may take several minutes)..."
+    if python3 "$ycm_install"; then
+        success "YouCompleteMe compiled successfully"
+    else
+        warn "YouCompleteMe compilation failed - you may need to install it manually"
+        warn "Run: python3 $ycm_install"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Change Default Shell
+# -----------------------------------------------------------------------------
+
+change_shell() {
+    if [[ "$SHELL" == *"zsh"* ]]; then
+        success "Zsh is already your default shell"
+        return 0
+    fi
+
+    local zsh_path
+    zsh_path=$(command -v zsh)
+
+    if [[ -z "$zsh_path" ]]; then
+        warn "Zsh not found, skipping shell change"
+        return 1
+    fi
+
+    info "Changing default shell to zsh..."
+
+    # Ensure zsh is in /etc/shells
+    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then
+        warn "Adding $zsh_path to /etc/shells (requires sudo)"
+        echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+
+    chsh -s "$zsh_path"
+    success "Default shell changed to zsh (restart terminal to take effect)"
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+main() {
+    echo ""
+    echo -e "${BLUE}======================================${NC}"
+    echo -e "${BLUE}     Dotfiles Installation Script     ${NC}"
+    echo -e "${BLUE}======================================${NC}"
+    echo ""
+
+    detect_os
+    install_packages
+    install_oh_my_zsh
+    init_submodules
+    setup_dotfiles
+    setup_claude
+    setup_vim
+    setup_fzf
+    setup_ycm
+    change_shell
+
+    echo ""
+    echo -e "${GREEN}======================================${NC}"
+    echo -e "${GREEN}     Installation Complete!          ${NC}"
+    echo -e "${GREEN}======================================${NC}"
+    echo ""
+    info "Please restart your terminal or run: exec zsh"
+    echo ""
+}
+
+main "$@"

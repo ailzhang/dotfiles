@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+#
+# Dotfiles uninstall script
+# Removes symlinks and restores backups if available
+#
+
+set -euo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# -----------------------------------------------------------------------------
+# Helper functions
+# -----------------------------------------------------------------------------
+
+info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+# Remove symlink and restore backup if available
+unlink_file() {
+    local src="$1"
+    local dest="$2"
+
+    if [[ -L "$dest" ]]; then
+        local current_target
+        current_target=$(readlink "$dest")
+        if [[ "$current_target" == "$src" ]]; then
+            rm "$dest"
+            success "Removed symlink: $dest"
+
+            # Look for most recent backup
+            local backup
+            backup=$(ls -t "${dest}.backup."* 2>/dev/null | head -n1 || true)
+            if [[ -n "$backup" ]]; then
+                info "Found backup: $backup"
+                read -p "Restore backup? (y/N) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    mv "$backup" "$dest"
+                    success "Restored: $dest"
+                fi
+            fi
+        else
+            warn "Symlink points elsewhere, skipping: $dest -> $current_target"
+        fi
+    else
+        info "Not a symlink, skipping: $dest"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Remove Dotfiles
+# -----------------------------------------------------------------------------
+
+remove_dotfiles() {
+    info "Removing dotfile symlinks..."
+
+    # Shell configuration
+    unlink_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+    unlink_file "$DOTFILES_DIR/.zsh" "$HOME/.zsh"
+
+    # Git configuration
+    unlink_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
+
+    # Vim configuration
+    unlink_file "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
+
+    # Tmux configuration
+    unlink_file "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+    success "Dotfile symlinks removed"
+}
+
+# -----------------------------------------------------------------------------
+# Remove Claude Configuration
+# -----------------------------------------------------------------------------
+
+remove_claude() {
+    info "Removing Claude Code configuration..."
+
+    unlink_file "$DOTFILES_DIR/CLAUDE_global.md" "$HOME/.claude/CLAUDE.md"
+    unlink_file "$DOTFILES_DIR/claude_settings.json" "$HOME/.claude/settings.json"
+    unlink_file "$DOTFILES_DIR/claude_commands" "$HOME/.claude/commands"
+    unlink_file "$DOTFILES_DIR/skills" "$HOME/.claude/skills"
+    unlink_file "$DOTFILES_DIR/rules" "$HOME/.claude/rules"
+
+    # Remove .claude directory if empty
+    if [[ -d "$HOME/.claude" ]]; then
+        if [[ -z "$(ls -A "$HOME/.claude")" ]]; then
+            rmdir "$HOME/.claude"
+            success "Removed empty .claude directory"
+        else
+            info ".claude directory not empty, keeping it"
+        fi
+    fi
+
+    success "Claude Code configuration removed"
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+main() {
+    echo ""
+    echo -e "${YELLOW}======================================${NC}"
+    echo -e "${YELLOW}    Dotfiles Uninstallation Script   ${NC}"
+    echo -e "${YELLOW}======================================${NC}"
+    echo ""
+
+    warn "This will remove symlinks created by the install script"
+    read -p "Continue? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        info "Uninstall cancelled"
+        exit 0
+    fi
+
+    remove_dotfiles
+    remove_claude
+
+    echo ""
+    echo -e "${GREEN}======================================${NC}"
+    echo -e "${GREEN}    Uninstallation Complete!         ${NC}"
+    echo -e "${GREEN}======================================${NC}"
+    echo ""
+    info "Oh My Zsh and system packages were not removed"
+    info "To remove Oh My Zsh, run: uninstall_oh_my_zsh"
+    echo ""
+}
+
+main "$@"

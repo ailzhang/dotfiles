@@ -54,8 +54,9 @@ bindkey '^R' history-incremental-search-backward  # Ctrl+R in vim mode
 # History
 # ==============================================================================
 
-# History file (HISTSIZE/SAVEHIST set above to 1000000)
 HISTFILE=~/.zshhistory
+HISTSIZE=1000000
+SAVEHIST=1000000
 
 # Share history between multiple shells
 setopt SHARE_HISTORY
@@ -124,39 +125,58 @@ HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND=bg=none
 export EDITOR='vim'
 
 alias rmf='rm -rf'
-alias la='ls -AlhFG --color=tty'
-alias ls='ls -hG --color=tty'
 alias pp='python3'
 alias hn='hostname'
+
+# Platform-specific ls aliases
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias la='ls -AlhFG'
+    alias ls='ls -hG'
+else
+    alias la='ls -AlhFG --color=tty'
+    alias ls='ls -hG --color=tty'
+fi
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
 [ -f ~/.vim/bundle/.fzf.zsh ] && source ~/.vim/bundle/.fzf.zsh
 
 # >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/usr/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
+# Cross-platform conda initialization
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: typical Homebrew or Miniconda paths
+    CONDA_PATHS=(
+        "$HOME/miniconda3/bin/conda"
+    )
 else
-    if [ -f "/usr/etc/profile.d/conda.sh" ]; then
-        . "/usr/etc/profile.d/conda.sh"
-    else
-        export PATH="/usr/bin:$PATH"
-    fi
+    # Linux
+    CONDA_PATHS=(
+        "/usr/bin/conda"
+        "$HOME/miniconda3/bin/conda"
+    )
 fi
-unset __conda_setup
+
+for conda_bin in "${CONDA_PATHS[@]}"; do
+    if [[ -x "$conda_bin" ]]; then
+        __conda_setup="$("$conda_bin" 'shell.zsh' 'hook' 2> /dev/null)"
+        if [ $? -eq 0 ]; then
+            eval "$__conda_setup"
+        else
+            conda_dir="$(dirname "$(dirname "$conda_bin")")"
+            if [ -f "$conda_dir/etc/profile.d/conda.sh" ]; then
+                . "$conda_dir/etc/profile.d/conda.sh"
+            else
+                export PATH="$conda_dir/bin:$PATH"
+            fi
+        fi
+        unset __conda_setup
+        break
+    fi
+done
+unset CONDA_PATHS conda_bin conda_dir
 # <<< conda initialize <<<
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Known to be working
-#source ~/fbsource/genai/msl/dev/xl_conda.sh activate pytorch_latest_sixlib_conda:5c4e4fa
-export REGION=pci
-export AIRSTORE_DECRYPT_SERVER_AFFINITY="job"
-
-# UV cache directory for uv (set by setup_uv_cache script)
-export UV_CACHE_DIR="/data/users/$USER/.uv"
-export USE_NUMA=0
-export FORCE_CUDA=1
-export NVCC_FLAGS="-gencode=arch=compute_90,code=sm_90"
+# Source local machine-specific config if it exists
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
