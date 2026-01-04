@@ -1,3 +1,21 @@
+# if on devserver
+[[ -f /usr/facebook/ops/rc/master.zshrc ]] && source /usr/facebook/ops/rc/master.zshrc
+
+# Allow tab completion in the middle of a word
+setopt COMPLETE_IN_WORD
+
+# Enforce a safer 'sudo rm' for interactive sessions
+if [[ -o interactive ]]; then
+    sudo() {
+        if [ "$1" = "rm" ]; then
+            shift
+            command sudo rm --preserve-root=all --one-file-system "$@"
+        else
+            command sudo "$@"
+        fi
+    }
+fi
+
 autoload -U compinit promptinit colors
 compinit
 promptinit
