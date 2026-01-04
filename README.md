@@ -2,6 +2,14 @@
 
 Personal dotfiles repository containing shell configurations, vim settings, and development environment setup.
 
+## Changelogs
+
+- v0: started as a fork of https://github.com/apaszke/dotfiles (thanks!)
+- v1: Ported claude setup from https://github.com/abatilo/vimrc (thanks!)
+- v2: Asked claude to help improve my setup.
+- v3: Claude rewrote install script to be more robust with proper error handling and cross-platform support.
+- v4: Claude rewrote my vimrc to neovim init.lua, which I would have never done without claude
+
 ## Installation
 
 ```bash
@@ -30,18 +38,3 @@ The uninstall script will:
 - Remove all symlinks created by the install script
 - Optionally restore backups of your original files
 - Leave Oh My Zsh and system packages intact
-
-## What's Included
-
-- `.zshrc` - Zsh configuration with Oh My Zsh
-- `.vimrc` - Vim configuration with plugins
-- `.tmux.conf` - Tmux configuration
-- `.gitconfig` - Git configuration
-- Claude Code configuration (CLAUDE.md, settings, commands, skills, rules)
-
-## Changelogs
-
-1. v0: started as a fork of https://github.com/apaszke/dotfiles
-2. v1: Ported claude setup from https://github.com/abatilo/vimrc
-3. v2: Asked claude to help improve my setup.
-4. v3: Rewrote install script to be more robust with proper error handling and cross-platform support.

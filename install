@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Dotfiles installation script
-# Supports macOS and Linux (Debian/Ubuntu)
+# Supports macOS and Linux (apt/dnf, falls back to Homebrew)
 #
 
 set -euo pipefail
@@ -93,6 +93,50 @@ detect_os() {
     info "Detected OS: $OS"
 }
 
+# Detect if running on a Facebook devserver
+is_fb_devserver() {
+    local hostname
+    hostname=$(hostname -f 2>/dev/null || hostname)
+    # Match common FB devserver patterns: devvm, devbig, devgpu, sandcastle, etc.
+    if [[ "$hostname" =~ \.(facebook|fb)\.com$ ]] || [[ "$hostname" =~ ^dev[a-z]+[0-9]+ ]]; then
+        return 0
+    fi
+    return 1
+}
+
+# -----------------------------------------------------------------------------
+# FB Devserver Proxy Setup
+# -----------------------------------------------------------------------------
+
+PROXY_ENV=""
+
+setup_fwdproxy() {
+    if ! is_fb_devserver; then
+        return 0
+    fi
+
+    info "Setting up fwdproxy for FB devserver..."
+
+    # Check if fwdproxy is available
+    if ! command_exists fwdproxy; then
+        die "fwdproxy is not available. Please install it first:\n  sudo feature install ttls_fwdproxy\n  systemctl --user start ttls_fwdproxy_root_loader.service\n\nThen set up the proxy alias:\n  alias with-proxy='HTTPS_PROXY=http://fwdproxy:8080 HTTP_PROXY=http://fwdproxy:8080 FTP_PROXY=http://fwdproxy:8080 https_proxy=http://fwdproxy:8080 http_proxy=http://fwdproxy:8080 ftp_proxy=http://fwdproxy:8080 no_proxy=*.facebook.com,*.tfbnw.net,*.fb.com'"
+    fi
+
+    # Set proxy environment for this script
+    PROXY_ENV="HTTPS_PROXY=http://fwdproxy:8080 HTTP_PROXY=http://fwdproxy:8080 FTP_PROXY=http://fwdproxy:8080 https_proxy=http://fwdproxy:8080 http_proxy=http://fwdproxy:8080 ftp_proxy=http://fwdproxy:8080 no_proxy='*.facebook.com,*.tfbnw.net,*.fb.com'"
+
+    success "fwdproxy configured"
+}
+
+# Run curl with proxy if on FB devserver
+proxy_curl() {
+    if [[ -n "$PROXY_ENV" ]]; then
+        env $PROXY_ENV curl "$@"
+    else
+        curl "$@"
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # Package Installation
 # -----------------------------------------------------------------------------
@@ -106,18 +150,19 @@ install_packages() {
                 info "Installing Homebrew..."
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
-            brew install curl zsh ncdu cmake || true
+            brew install curl zsh ncdu cmake neovim || true
             ;;
         linux)
-            if command_exists apt; then
-                sudo apt update
-                sudo apt install -y curl zsh xclip ncdu cmake build-essential
-            elif command_exists dnf; then
+            if is_fb_devserver; then
+                # neovim already installed on FB devservers
                 sudo dnf install -y curl zsh xclip ncdu cmake gcc-c++ make
-            elif command_exists pacman; then
-                sudo pacman -S --noconfirm curl zsh xclip ncdu cmake base-devel
+                # Link vi to nvim
+                if command_exists nvim && ! command_exists vi; then
+                    sudo ln -sf "$(command -v nvim)" /usr/local/bin/vi
+                fi
             else
-                warn "Unknown package manager. Please install manually: curl zsh xclip ncdu cmake build-essential"
+                sudo apt update
+                sudo apt install -y curl zsh xclip ncdu cmake build-essential neovim
             fi
             ;;
     esac
@@ -165,8 +210,8 @@ install_miniconda() {
             ;;
     esac
 
-    installer="$(mktemp)"
-    curl -fsSL "$url" -o "$installer"
+    installer="$(mktemp).sh"
+    proxy_curl -fsSL "$url" -o "$installer"
     bash "$installer" -b -p "$miniconda_dir"
     rm -f "$installer"
 
@@ -185,7 +230,7 @@ install_oh_my_zsh() {
 
     info "Installing Oh My Zsh..."
     # Use --unattended to avoid the installer changing the shell and starting zsh
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    sh -c "$(proxy_curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     success "Oh My Zsh installed"
 }
 
@@ -214,9 +259,6 @@ setup_dotfiles() {
     # Git configuration
     link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
 
-    # Vim configuration
-    link_file "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
-
     # Tmux configuration
     link_file "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
 
@@ -242,28 +284,25 @@ setup_claude() {
 }
 
 # -----------------------------------------------------------------------------
-# Vim Plugin Installation
+# Neovim Setup
 # -----------------------------------------------------------------------------
 
 setup_vim() {
-    info "Setting up Vim plugins..."
+    info "Setting up Neovim..."
 
-    # Install vim-plug if not present
-    local plug_path="$HOME/.vim/autoload/plug.vim"
-    if [[ ! -f "$plug_path" ]]; then
-        info "Installing vim-plug..."
-        curl -fLo "$plug_path" --create-dirs \
-            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-        success "vim-plug installed"
-    else
-        success "vim-plug already installed"
-    fi
+    # Set up Neovim config directory
+    local nvim_config_dir="$HOME/.config/nvim"
+    mkdir -p "$nvim_config_dir"
 
-    # Install plugins non-interactively
-    if command_exists vim; then
-        info "Installing Vim plugins (this may take a moment)..."
-        vim +PlugInstall +qall 2>/dev/null || warn "Vim plugin installation had issues"
-        success "Vim plugins installed"
+    # Link init.lua for Neovim (modern Lua config)
+    link_file "$DOTFILES_DIR/nvim/init.lua" "$nvim_config_dir/init.lua"
+    link_file "$DOTFILES_DIR/colors" "$nvim_config_dir/colors"
+
+    # Install Neovim plugins using lazy.nvim (auto-bootstraps)
+    if command_exists nvim; then
+        info "Installing Neovim plugins via lazy.nvim (this may take a moment)..."
+        nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Neovim plugin installation had issues"
+        success "Neovim plugins installed"
     fi
 }
 
@@ -291,46 +330,6 @@ EOF
         fi
     else
         warn "fzf not found at $fzf_dir - run 'vim +PlugInstall' first"
-    fi
-}
-
-# -----------------------------------------------------------------------------
-# YouCompleteMe Compilation
-# -----------------------------------------------------------------------------
-
-setup_ycm() {
-    info "Setting up YouCompleteMe..."
-
-    local ycm_dir="$HOME/.vim/plugged/YouCompleteMe"
-    local ycm_install="$ycm_dir/install.py"
-    local miniconda_python="$HOME/miniconda3/bin/python"
-
-    if [[ ! -d "$ycm_dir" ]]; then
-        warn "YouCompleteMe not found - run 'vim +PlugInstall' first"
-        return 1
-    fi
-
-    if [[ -f "$ycm_dir/third_party/ycmd/ycm_core.so" ]] || [[ -f "$ycm_dir/third_party/ycmd/ycm_core.cpython"*".so" ]]; then
-        success "YouCompleteMe already compiled"
-        return 0
-    fi
-
-    if [[ ! -f "$ycm_install" ]]; then
-        warn "YouCompleteMe install.py not found"
-        return 1
-    fi
-
-    if [[ ! -x "$miniconda_python" ]]; then
-        warn "Miniconda Python not found at $miniconda_python"
-        return 1
-    fi
-
-    info "Compiling YouCompleteMe with Miniconda Python (this may take several minutes)..."
-    if "$miniconda_python" "$ycm_install"; then
-        success "YouCompleteMe compiled successfully"
-    else
-        warn "YouCompleteMe compilation failed - you may need to install it manually"
-        warn "Run: $miniconda_python $ycm_install"
     fi
 }
 
@@ -376,6 +375,7 @@ main() {
     echo ""
 
     detect_os
+    setup_fwdproxy
     install_packages
     install_miniconda
     install_oh_my_zsh
@@ -384,7 +384,6 @@ main() {
     setup_claude
     setup_vim
     setup_fzf
-    setup_ycm
     change_shell
 
     echo ""

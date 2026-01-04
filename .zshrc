@@ -122,7 +122,11 @@ bindkey '^[[B' history-substring-search-down
 HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND=bg=none
 HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND=bg=none
 
-export EDITOR='vim'
+export EDITOR='nvim'
+
+# Use neovim as the default editor
+alias vi='nvim'
+alias vim='nvim'
 
 alias rmf='rm -rf'
 alias pp='python3'
