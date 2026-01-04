@@ -106,23 +106,71 @@ install_packages() {
                 info "Installing Homebrew..."
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
-            brew install curl zsh ncdu cmake python3 || true
+            brew install curl zsh ncdu cmake || true
             ;;
         linux)
             if command_exists apt; then
                 sudo apt update
-                sudo apt install -y curl zsh xclip ncdu cmake build-essential python3-dev
+                sudo apt install -y curl zsh xclip ncdu cmake build-essential
             elif command_exists dnf; then
-                sudo dnf install -y curl zsh xclip ncdu cmake gcc-c++ make python3-devel
+                sudo dnf install -y curl zsh xclip ncdu cmake gcc-c++ make
             elif command_exists pacman; then
-                sudo pacman -S --noconfirm curl zsh xclip ncdu cmake base-devel python
+                sudo pacman -S --noconfirm curl zsh xclip ncdu cmake base-devel
             else
-                warn "Unknown package manager. Please install manually: curl zsh xclip ncdu cmake build-essential python3-dev"
+                warn "Unknown package manager. Please install manually: curl zsh xclip ncdu cmake build-essential"
             fi
             ;;
     esac
 
     success "System packages installed"
+}
+
+# -----------------------------------------------------------------------------
+# Miniconda Installation
+# -----------------------------------------------------------------------------
+
+install_miniconda() {
+    local miniconda_dir="$HOME/miniconda3"
+
+    if [[ -d "$miniconda_dir" ]]; then
+        success "Miniconda already installed at $miniconda_dir"
+        return 0
+    fi
+
+    info "Installing Miniconda..."
+
+    local installer
+    local url
+
+    case "$OS" in
+        macos)
+            case "$(uname -m)" in
+                arm64)
+                    url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh"
+                    ;;
+                *)
+                    url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
+                    ;;
+            esac
+            ;;
+        linux)
+            case "$(uname -m)" in
+                aarch64)
+                    url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
+                    ;;
+                *)
+                    url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+                    ;;
+            esac
+            ;;
+    esac
+
+    installer="$(mktemp)"
+    curl -fsSL "$url" -o "$installer"
+    bash "$installer" -b -p "$miniconda_dir"
+    rm -f "$installer"
+
+    success "Miniconda installed at $miniconda_dir"
 }
 
 # -----------------------------------------------------------------------------
@@ -255,6 +303,7 @@ setup_ycm() {
 
     local ycm_dir="$HOME/.vim/plugged/YouCompleteMe"
     local ycm_install="$ycm_dir/install.py"
+    local miniconda_python="$HOME/miniconda3/bin/python"
 
     if [[ ! -d "$ycm_dir" ]]; then
         warn "YouCompleteMe not found - run 'vim +PlugInstall' first"
@@ -271,12 +320,17 @@ setup_ycm() {
         return 1
     fi
 
-    info "Compiling YouCompleteMe (this may take several minutes)..."
-    if python3 "$ycm_install"; then
+    if [[ ! -x "$miniconda_python" ]]; then
+        warn "Miniconda Python not found at $miniconda_python"
+        return 1
+    fi
+
+    info "Compiling YouCompleteMe with Miniconda Python (this may take several minutes)..."
+    if "$miniconda_python" "$ycm_install"; then
         success "YouCompleteMe compiled successfully"
     else
         warn "YouCompleteMe compilation failed - you may need to install it manually"
-        warn "Run: python3 $ycm_install"
+        warn "Run: $miniconda_python $ycm_install"
     fi
 }
 
@@ -323,6 +377,7 @@ main() {
 
     detect_os
     install_packages
+    install_miniconda
     install_oh_my_zsh
     init_submodules
     setup_dotfiles
