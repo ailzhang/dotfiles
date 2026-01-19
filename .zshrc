@@ -1,6 +1,9 @@
 # if on devserver
 [[ -f /usr/facebook/ops/rc/master.zshrc ]] && source /usr/facebook/ops/rc/master.zshrc
 
+# Source system zprofile if it exists
+[[ -f /etc/zprofile ]] && source /etc/zprofile
+
 # Allow tab completion in the middle of a word
 setopt COMPLETE_IN_WORD
 
