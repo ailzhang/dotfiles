@@ -71,6 +71,13 @@ bindkey "^[f" forward-word
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward  # Ctrl+R in vim mode
 
+# Consume tmux focus events so they don't get misinterpreted in vi mode
+# (focus-events on + KEYTIMEOUT=1 causes \e[O to become Esc + O = "open line above")
+function _tmux_focus_noop { }
+zle -N _tmux_focus_noop
+bindkey '\e[I' _tmux_focus_noop   # focus-in
+bindkey '\e[O' _tmux_focus_noop   # focus-out
+
 # ==============================================================================
 # History
 # ==============================================================================
@@ -205,3 +212,8 @@ unset CONDA_PATHS conda_bin conda_dir
 
 # Source local machine-specific config if it exists
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+export AIRSTORE_LOG_LEVEL=WARNING
+export AIRSTORE_LOGLEVEL_PY=WARNING
+export AIRSTORE_LOGLEVEL_CPP=WARNING
+export NCCL_DEBUG=ERROR
+alias with-proxy='HTTPS_PROXY=http://fwdproxy:8080 HTTP_PROXY=http://fwdproxy:8080 FTP_PROXY=http://fwdproxy:8080 https_proxy=http://fwdproxy:8080 http_proxy=http://fwdproxy:8080 ftp_proxy=http://fwdproxy:8080 http_no_proxy="*.facebook.com|*.tfbnw.net|*.fb.com"'
